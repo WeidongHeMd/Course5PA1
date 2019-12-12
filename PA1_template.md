@@ -29,15 +29,57 @@ The dataset is stored in a comma-separated-value (CSV) file and there are a tota
 
 The data was downloaded, unzipped and saved in the project directory and the file name is "activity.csv". The following code loads the packages used in this program, and reads in the data with read_csv(readr) and assigns it to the variable - activity.
 
-```{r echo=TRUE, results='hide'}
 
+```r
 # load the libraries
 library(tidyverse)
+```
+
+```
+## ── Attaching packages ─────────────────────────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──
+```
+
+```
+## ✔ ggplot2 3.2.1     ✔ purrr   0.3.3
+## ✔ tibble  2.1.3     ✔ dplyr   0.8.3
+## ✔ tidyr   1.0.0     ✔ stringr 1.4.0
+## ✔ readr   1.3.1     ✔ forcats 0.4.0
+```
+
+```
+## ── Conflicts ────────────────────────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+## ✖ dplyr::filter() masks stats::filter()
+## ✖ dplyr::lag()    masks stats::lag()
+```
+
+```r
 library(ggplot2)
 library(lubridate)
+```
 
+```
+## 
+## Attaching package: 'lubridate'
+```
+
+```
+## The following object is masked from 'package:base':
+## 
+##     date
+```
+
+```r
 # load the data
 activity <- read_csv(file="activity.csv")
+```
+
+```
+## Parsed with column specification:
+## cols(
+##   steps = col_double(),
+##   date = col_date(format = ""),
+##   interval = col_double()
+## )
 ```
 
 ## 2. What is mean total number of steps taken per day?
@@ -52,37 +94,39 @@ Specifically, we will do the following:
 
 ### 2.1 Total steps taken each day median
 
-```{r echo=TRUE}
+
+```r
 # total steps each day: stepsPerDay
 stepsPerDay <- activity %>% 
     group_by(date) %>%
     summarize(
       total = sum(steps, na.rm=TRUE)
     )
-
 ```
 
 
 ### 2.2 Make a histogram of the total number of steps taken each day
 
-```{r echo=TRUE}
+
+```r
 # histogram for steps taken each day
 ggplot(data = stepsPerDay, mapping = aes(x=total)) + 
     geom_histogram(bins = 10, na.rm=TRUE) + 
     ylab("days")
-    
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png)<!-- -->
 
 
 ### 2.3 The mean and median of the total number of steps taken per day
 
-```{r echo=TRUE}
+
+```r
 mean_stepsPerDay <- mean(stepsPerDay$total, na.rm=TRUE)
 median_stepsPerday <- median(stepsPerDay$total, na.rm=TRUE)
-
 ```
 
-The mean and median of the total number of steps per day are respectively `r as.integer(mean_stepsPerDay)` steps and `r as.integer(median_stepsPerday)` steps.
+The mean and median of the total number of steps per day are respectively 9354 steps and 10395 steps.
 
 
 ## 3. What is the average daily activity pattern?
@@ -91,7 +135,8 @@ The mean and median of the total number of steps per day are respectively `r as.
 
 The following code chunk creates a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis).
 
-```{r echo=TRUE}
+
+```r
 timeseries <- activity %>% 
     group_by(interval) %>%
     summarise(
@@ -103,20 +148,20 @@ ggplot(data = timeseries,
     xlab("intervals") +
     ylab("average number of steps \nin each 5-minute interval")+
     geom_line(na.rm=TRUE)
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-5-1.png)<!-- -->
 
 ### 3.2 The 5-minute interval(s) with the maximun number of steps on average across all the days
 
-```{r echo=TRUE}
 
+```r
 # locate the interval(s) with the largest averaged number of steps
 theInterval <- timeseries %>%
     filter(average == max(average))
-
 ```
 
-Running the code chunk, yieds: the internal is `r theInterval$interval`, and the maximun number of steps is `r as.integer(theInterval$average)`.
+Running the code chunk, yieds: the internal is 835, and the maximun number of steps is 206.
 
 ## 4. Imputing missing values
 
@@ -124,15 +169,19 @@ Running the code chunk, yieds: the internal is `r theInterval$interval`, and the
 
 The data set contains a number of days/intervals with missing values (coded as NA). The following code chunk create a data subset (rec_NA) containing all the records with missing values.
 
-```{r echo=TRUE}
+
+```r
 # data subset contain all the records with missing values
 rec_NA <- activity %>% 
   filter(is.na(steps)|is.na(date)|is.na(interval))
 
 dim(rec_NA)
+```
 
 ```
-The total number of records with missing values are `r dim(rec_NA)[1]`.
+## [1] 2304    3
+```
+The total number of records with missing values are 2304.
 
 ### 4.2 & 4.3 Imputing missing values and create a new data set
 
@@ -156,20 +205,33 @@ The following code identifies the days with missing values. The outcome shows th
 
 Other than these eight days, there is no missing value for the rest of dates in the data.
 
-```{r echo=TRUE}
 
+```r
 # identify the observations with missing values
 activity %>%
     filter(is.na(steps)) %>%
     count(date) 
+```
 
+```
+## # A tibble: 8 x 2
+##   date           n
+##   <date>     <int>
+## 1 2012-10-01   288
+## 2 2012-10-08   288
+## 3 2012-11-01   288
+## 4 2012-11-04   288
+## 5 2012-11-09   288
+## 6 2012-11-10   288
+## 7 2012-11-14   288
+## 8 2012-11-30   288
 ```
 
 Without additional information, we would use the number of 5-minute interval steps averaged accross all days in October 2012 for 2012-10-01 and 2012-10-08; the steps averaged accross all days in November 2012 for 2012-11-01, 2012-11-04, 2012-11-09, 2012-11-10 2012-11-14,and 2012-11-30. The following code calculates the October and November averages and then uses the averages to fill the missing values for these eight days.
 
 #### Imputing missing values for 2012-10-01 and 2012-10-08
-```{r echo=TRUE}
 
+```r
 ## averaged 5-minute interval steps each day in 10/2012
 average_oct2012 <- activity %>%
     filter(date >=date("2012-10-01") & date <= date("2012-10-31")) %>%
@@ -188,13 +250,12 @@ activity_oct2012narm <- activity %>%
                        average_oct2012$steps, 
                        steps )
     )
-
-
 ```
 
 #### Imputing missing values for 2012-11-01, 2012-11-04, 2012-11-09, 2012-11-10 2012-11-14,and 2012-11-30
 
-```{r echo=TRUE}
+
+```r
 ## averaged 5-minute interval steps each day in 11/2012
 average_nov2012 <- activity %>%
     filter(date >=date("2012-11-01") & date <= date("2012-11-30")) %>%
@@ -212,14 +273,14 @@ activity_narm <- activity_oct2012narm %>%
                        average_nov2012$steps, 
                        steps)
     )
-
 ```
 
 ### 4.4 Histogram of the total number of steps, and mean and median of total number of steps taken per day from the new data set
 
 A histogram of the total number of steps taken each day:
 
-```{r echo=TRUE}
+
+```r
 # total steps each day: step_day
 stepsPerDay_new <- activity_narm %>% 
     group_by(date) %>%
@@ -231,20 +292,21 @@ stepsPerDay_new <- activity_narm %>%
 ggplot(data = stepsPerDay_new, mapping = aes(x=total)) + 
     geom_histogram(bins = 10, na.rm=TRUE)+
     ylab("days")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)<!-- -->
 
 
 
 The mean and median of the total number of steps taken per day from the new data set:
 
-```{r echo=TRUE}
+
+```r
 mean_stepsPerDay_new <- mean(stepsPerDay_new$total)
 median_stepsPerday_new <- median(stepsPerDay_new$total)
-
 ```
 
-The mean and median of the total number of steps per day from the new data set are respectively `r as.integer(mean_stepsPerDay_new)` steps and `r as.integer(median_stepsPerday_new)` steps. The mean and median from the original data are respectively `r as.integer(mean_stepsPerDay)` steps and `r as.integer(median_stepsPerday)` steps. 
+The mean and median of the total number of steps per day from the new data set are respectively 10749 steps and 10631 steps. The mean and median from the original data are respectively 9354 steps and 10395 steps. 
 
 The effect of imputing NAs is an increase in both the mean and median total number of steps taken per day, which is also reflected on the change in the histogram of the total number of steps taken per day.
 
@@ -252,7 +314,8 @@ The effect of imputing NAs is an increase in both the mean and median total numb
 
 The new dataset (activity_narm) with the filled-in missing values is used for this part. The following code was created to address the question: Are there differences in activity patterns between weekdays and weekends?
 
-```{r echo=TRUE}
+
+```r
 weekend <- c("Saturday", "Sunday")
 activity_narm %>%
   # add weekday variable which takes on a value of "weekend" or "weekday"
@@ -270,8 +333,9 @@ activity_narm %>%
     facet_wrap(~weekday, nrow=2) +
     xlab("intervals") +
     ylab("averaged number of steps")
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
 The time series plots above show the following differences in activity patterns between weekday and weekend:
 
